@@ -11,6 +11,44 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+private val EsquemaClaro = lightColorScheme(
+    primary = VerdeGranja,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
+    primaryContainer = VerdeGranjaClaro,
+    onPrimaryContainer = VerdeOscuro,
+    secondary = AzulSecundario,
+    secondaryContainer = AzulSecundarioClaro,
+    tertiary = NaranjaTerciario,
+    tertiaryContainer = NaranjaTerciarioClaro,
+    background = FondoClaro,
+    surface = SuperficieClara,
+    error = ErrorClaro
+)
+
+private val EsquemaOscuro = darkColorScheme(
+    primary = VerdeGranjaOscuroModo,
+    primaryContainer = VerdeContenedorOscuro,
+    secondary = AzulSecundarioOscuroModo,
+    background = FondoOscuro,
+    surface = SuperficieOscura,
+    error = ErrorOscuro
+)
+
+@Composable
+fun AlertaTempranaGalponesTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = if (darkTheme) EsquemaOscuro else EsquemaClaro
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
+
+/*
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
@@ -56,3 +94,5 @@ fun AlertaTempranaGalponesTheme(
         content = content
     )
 }
+*/
+
