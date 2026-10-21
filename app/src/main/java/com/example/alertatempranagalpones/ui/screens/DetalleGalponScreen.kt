@@ -1,6 +1,5 @@
 package com.example.alertatempranagalpones.ui.screens
 
-//import androidx.compose.material3.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,17 +29,23 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.alertatempranagalpones.data.model.Alerta
 import com.example.alertatempranagalpones.data.model.EstadoGalpon
 import com.example.alertatempranagalpones.data.model.Galpon
 import com.example.alertatempranagalpones.data.model.Medicion
@@ -67,6 +75,9 @@ fun DetalleGalponScreen(
 ) {
     val galpon by viewModel.galpon.collectAsState()
     val mediciones by viewModel.mediciones.collectAsState()
+    val alertas by viewModel.alertas.collectAsState()
+
+    var alertaEnRegistro by remember { mutableStateOf<Alerta?>(null) }
 
     Scaffold(
         topBar = {
@@ -98,13 +109,28 @@ fun DetalleGalponScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item { ResumenGalpon(actual) }
+
+                // --- Alertas ---
+                item { Text("Alertas", style = MaterialTheme.typography.titleMedium) }
+                if (alertas.isEmpty()) {
+                    item { Text("Este galpón no tiene alertas.") }
+                } else {
+                    items(alertas, key = { "alerta-${it.id}" }) { alerta ->
+                        TarjetaAlerta(
+                            alerta = alerta,
+                            onRegistrar = { alertaEnRegistro = alerta }
+                        )
+                    }
+                }
+
+                // --- Historial de mediciones ---
                 item {
                     Text("Historial de mediciones", style = MaterialTheme.typography.titleMedium)
                 }
                 if (mediciones.isEmpty()) {
                     item { Text("Aún no hay mediciones guardadas.") }
                 } else {
-                    items(mediciones, key = { it.id }) { medicion ->
+                    items(mediciones, key = { "medicion-${it.id}" }) { medicion ->
                         FilaMedicion(medicion)
                         HorizontalDivider()
                     }
@@ -112,13 +138,36 @@ fun DetalleGalponScreen(
             }
         }
     }
+
+    // Formulario para registrar la acción realizada
+    alertaEnRegistro?.let { alerta ->
+        DialogoRegistrarAccion(
+            alerta = alerta,
+            onCancelar = { alertaEnRegistro = null },
+            onGuardar = { texto ->
+                val error = viewModel.registrarAccion(alerta.id, texto)
+                if (error == null) alertaEnRegistro = null
+                error
+            }
+        )
+    }
+}
+
+@Composable
+private fun EtiquetaEstado(estado: EstadoGalpon) {
+    val colorTexto = if (estado == EstadoGalpon.ADVERTENCIA) Color.Black else Color.White
+    Surface(color = colorDeEstado(estado), shape = RoundedCornerShape(50)) {
+        Text(
+            text = estado.etiqueta,
+            color = colorTexto,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
+    }
 }
 
 @Composable
 private fun ResumenGalpon(galpon: Galpon) {
-    val colorEstado = colorDeEstado(galpon.estado)
-    val colorTexto = if (galpon.estado == EstadoGalpon.ADVERTENCIA) Color.Black else Color.White
-
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -131,14 +180,7 @@ private fun ResumenGalpon(galpon: Galpon) {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )
-                Surface(color = colorEstado, shape = RoundedCornerShape(50)) {
-                    Text(
-                        text = galpon.estado.etiqueta,
-                        color = colorTexto,
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
+                EtiquetaEstado(galpon.estado)
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
@@ -167,6 +209,84 @@ private fun ValorGrande(titulo: String, valor: String) {
         )
         Text(valor, style = MaterialTheme.typography.headlineMedium)
     }
+}
+
+@Composable
+private fun TarjetaAlerta(alerta: Alerta, onRegistrar: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                EtiquetaEstado(alerta.estado)
+                Text(
+                    text = if (alerta.atendida) "Atendida" else "Pendiente",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (alerta.atendida) EstadoNormal else MaterialTheme.colorScheme.error
+                )
+            }
+            Text(alerta.mensaje, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = formatoFecha.format(Date(alerta.fechaHora)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (alerta.atendida) {
+                Text(
+                    text = "Acción realizada: " + (alerta.accionRealizada ?: "-"),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                Button(onClick = onRegistrar) { Text("Registrar acción") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DialogoRegistrarAccion(
+    alerta: Alerta,
+    onCancelar: () -> Unit,
+    onGuardar: (String) -> String?
+) {
+    var texto by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onCancelar,
+        title = { Text("Registrar acción") },
+        text = {
+            Column {
+                Text(alerta.mensaje, style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = texto,
+                    onValueChange = {
+                        texto = it
+                        error = null
+                    },
+                    label = { Text("¿Qué acción realizaste?") },
+                    isError = error != null,
+                    supportingText = {
+                        Text(error ?: "${texto.length}/${DetalleGalponViewModel.MAX_CARACTERES}")
+                    },
+                    minLines = 3,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { error = onGuardar(texto) }) { Text("Guardar") }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancelar) { Text("Cancelar") }
+        }
+    )
 }
 
 @Composable
@@ -199,18 +319,3 @@ private fun FilaMedicion(medicion: Medicion) {
         )
     }
 }
-
-
-/* @Composable
-fun DetalleGalponScreen(galponId: Long, onVolver: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Detalle del galpón $galponId", style = MaterialTheme.typography.headlineMedium)
-        Button(onClick = onVolver, modifier = Modifier.padding(top = 24.dp)) {
-            Text("Volver")
-        }
-    }
-} */
