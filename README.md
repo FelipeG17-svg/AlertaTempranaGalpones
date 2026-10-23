@@ -74,7 +74,7 @@ Kotlin · Jetpack Compose · Material 3 · Navigation Compose · Room + KSP · C
 
 ## Cómo ejecutar
 
-1. Clonar el repositorio: `git clone https://github.com/FelipeG17-svg/AlertaTempranaGalpones/tree/develop `
+1. Clonar el repositorio: `git clone https://github.com/FelipeG17-svg/AlertaTempranaGalpones.git `
 2. Abrir la carpeta en **Android Studio**.
 3. Esperar a que termine la sincronización de Gradle.
 4. Ejecutar la app (▶) en un emulador o en un celular Android.
@@ -85,15 +85,15 @@ Para probar: ingresar con un correo válido (por ejemplo `prueba@duocuc.cl`) y u
 
 |Login con validación|Lista de galpones|
 |-|-|
-|!\[Login con validación](capturas/LoginValidacion.png)|!\[Lista de galpones](capturas/ListaGalpones.png)|
+|<img src="capturas/LoginValidacion.png" width="300">|<img src="capturas/ListaGalpones.png" width="300">|
 
 |Detalle del galpón|Registro de acción|
 |-|-|
-|!\[Detalle del galpón](capturas/DetalleGalpon.png)|!\[Registro de acción](capturas/RegistroAccion.png)|
+|<img src="capturas/DetalleGalpon.png" width="300">|<img src="capturas/RegistroAccion.png" width="300">|
 
 |Notificación de alerta crítica|
 |-|
-|!\[Notificación](capturas/NotificacionAlerta.png)|
+|<img src="capturas/NotificacionAlerta.png" width="300">|
 
 ## Gestión del proyecto
 
