@@ -59,4 +59,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging)
 }
