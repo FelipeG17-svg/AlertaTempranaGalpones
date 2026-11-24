@@ -23,4 +23,10 @@ interface GalponDao {
 
     @Upsert
     suspend fun guardar(galpon: Galpon)
+
+    @Query("DELETE FROM galpones WHERE id = :id")
+    suspend fun borrarPorId(id: Long)
+
+    @Query("DELETE FROM galpones WHERE id NOT IN (:ids)")
+    suspend fun borrarQueNoEstenEn(ids: List<Long>)
 }
