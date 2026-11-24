@@ -9,11 +9,14 @@ import com.example.alertatempranagalpones.data.model.Galpon
 import com.example.alertatempranagalpones.data.model.Medicion
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import com.example.alertatempranagalpones.data.remote.GalponApi
+import com.example.alertatempranagalpones.data.remote.RetrofitClient
 
 class GalponRepository(
     private val galponDao: GalponDao,
     private val medicionDao: MedicionDao,
-    private val alertaDao: AlertaDao
+    private val alertaDao: AlertaDao,
+    private val api: GalponApi = RetrofitClient.galponApi
 ) {
 
     val galpones: Flow<List<Galpon>> = galponDao.observarTodos()
@@ -28,9 +31,18 @@ class GalponRepository(
 
     suspend fun registrarAccion(alertaId: Long, accion: String) =
         alertaDao.registrarAccion(alertaId, accion)
+    suspend fun sincronizar(): Boolean {
+        // 1. Intenta traer los galpones del backend
+        val conectado = try {
+            val remotos = api.listar()
+            galponDao.guardarTodos(remotos)
+            galponDao.borrarQueNoEstenEn(remotos.map { it.id })
+            true
+        } catch (e: Exception) {
+            false
+        }
 
-    suspend fun sincronizar() {
-        delay(800) // simula la espera de una consulta a un servicio
+        // 2. Medidas y alertas siguen siendo locales por ahora
         val simulados = datosSimulados()
         if (galponDao.contar() == 0) {
             galponDao.guardarTodos(simulados)
@@ -41,6 +53,25 @@ class GalponRepository(
         if (alertaDao.contar() == 0) {
             alertasSimuladas(simulados).forEach { alertaDao.insertar(it) }
         }
+        return conectado
+    }
+
+    suspend fun crearGalpon(galpon: Galpon): Result<Galpon> = runCatching {
+        val creado = api.crear(galpon.copy(id = 0))
+        galponDao.guardar(creado)
+        creado
+    }
+
+    suspend fun actualizarGalpon(galpon: Galpon): Result<Galpon> = runCatching {
+        val actualizado = api.actualizar(galpon.id, galpon)
+        galponDao.guardar(actualizado)
+        actualizado
+    }
+
+    suspend fun borrarGalpon(id: Long): Result<Unit> = runCatching {
+        val respuesta = api.borrar(id)
+        if (!respuesta.isSuccessful) error("Error ${respuesta.code()}")
+        galponDao.borrarPorId(id)
     }
 
     private fun datosSimulados(): List<Galpon> {
