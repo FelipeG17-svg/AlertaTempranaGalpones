@@ -3,10 +3,14 @@ package com.example.alertatempranagalpones.ui.screens
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,6 +48,7 @@ fun ListaGalponesScreen(
     val context = LocalContext.current
     val galpones by viewModel.galpones.collectAsState()
     val cargando by viewModel.cargando.collectAsState()
+    val clima by viewModel.clima.collectAsState()
 
     var permisoNotificaciones by remember { mutableStateOf(Notificador.tienePermiso(context)) }
     val pedirPermiso = rememberLauncherForActivityResult(
@@ -85,7 +90,24 @@ fun ListaGalponesScreen(
                 modifier = Modifier.padding(innerPadding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            ) { clima?.let { c ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Clima exterior en Melipilla",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text("Temperatura: ${c.temperatura} °C")
+                            Text("Humedad: ${c.humedad} %")
+                            Text(
+                                "Fuente: Open-Meteo",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
                 items(galpones, key = { it.id }) { galpon ->
                     GalponCard(galpon = galpon, onClick = { onGalponClick(galpon.id) })
                 }

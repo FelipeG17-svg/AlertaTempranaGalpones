@@ -1,5 +1,7 @@
 package com.example.alertatempranagalpones.data.repository
 
+import com.example.alertatempranagalpones.data.remote.ClimaActual
+import com.example.alertatempranagalpones.data.remote.ClimaApi
 import com.example.alertatempranagalpones.data.local.AlertaDao
 import com.example.alertatempranagalpones.data.local.GalponDao
 import com.example.alertatempranagalpones.data.local.MedicionDao
@@ -16,7 +18,8 @@ class GalponRepository(
     private val galponDao: GalponDao,
     private val medicionDao: MedicionDao,
     private val alertaDao: AlertaDao,
-    private val api: GalponApi = RetrofitClient.galponApi
+    private val api: GalponApi = RetrofitClient.galponApi,
+    private val climaApi: ClimaApi = RetrofitClient.climaApi
 ) {
 
     val galpones: Flow<List<Galpon>> = galponDao.observarTodos()
@@ -72,6 +75,12 @@ class GalponRepository(
         val respuesta = api.borrar(id)
         if (!respuesta.isSuccessful) error("Error ${respuesta.code()}")
         galponDao.borrarPorId(id)
+    }
+
+    // Clima exterior de Melipilla (API externa Open-Meteo)
+    suspend fun obtenerClima(): Result<ClimaActual> = runCatching {
+        climaApi.obtenerClima(latitud = -33.6833, longitud = -71.2167).current
+            ?: error("Sin datos de clima")
     }
 
     private fun datosSimulados(): List<Galpon> {

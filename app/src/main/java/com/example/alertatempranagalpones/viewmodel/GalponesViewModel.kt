@@ -4,6 +4,7 @@ package com.example.alertatempranagalpones.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.alertatempranagalpones.data.remote.ClimaActual
 import com.example.alertatempranagalpones.data.local.AppDatabase
 import com.example.alertatempranagalpones.data.model.Galpon
 import com.example.alertatempranagalpones.data.repository.GalponRepository
@@ -45,6 +46,19 @@ class GalponesViewModel(application: Application) : AndroidViewModel(application
 
     fun limpiarMensaje() {
         _mensaje.value = null
+    }
+
+    private val _clima = MutableStateFlow<ClimaActual?>(null)
+    val clima: StateFlow<ClimaActual?> = _clima.asStateFlow()
+
+    fun cargarClima() {
+        viewModelScope.launch {
+            repository.obtenerClima().onSuccess { _clima.value = it }
+        }
+    }
+
+    init {
+        cargarClima()
     }
 
     fun crearGalpon(

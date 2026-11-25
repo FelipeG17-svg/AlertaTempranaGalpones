@@ -31,4 +31,13 @@ object RetrofitClient {
             .build()
             .create(GalponApi::class.java)
     }
+
+    val climaApi: ClimaApi by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.open-meteo.com/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ClimaApi::class.java)
+    }
 }
