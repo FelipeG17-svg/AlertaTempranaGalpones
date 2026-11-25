@@ -83,10 +83,13 @@ class GalponesViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun borrarGalpon(id: Long) {
+    fun borrarGalpon(id: Long, alTerminar: () -> Unit = {}) {
         viewModelScope.launch {
             repository.borrarGalpon(id)
-                .onSuccess { _mensaje.value = "Galpón borrado" }
+                .onSuccess {
+                    _mensaje.value = "Galpón borrado"
+                    alTerminar()
+                }
                 .onFailure { _mensaje.value = "No se pudo borrar: revisa la conexión con el servidor" }
         }
     }
