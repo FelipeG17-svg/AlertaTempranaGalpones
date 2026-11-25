@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,6 +38,7 @@ import com.example.alertatempranagalpones.viewmodel.GalponesViewModel
 @Composable
 fun ListaGalponesScreen(
     onGalponClick: (Long) -> Unit,
+    onNuevoGalpon: () -> Unit,
     viewModel: GalponesViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -66,6 +68,9 @@ fun ListaGalponesScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(title = { Text("Galpones") })
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onNuevoGalpon) { Text("+") }
         }
     ) { innerPadding ->
         if (cargando) {

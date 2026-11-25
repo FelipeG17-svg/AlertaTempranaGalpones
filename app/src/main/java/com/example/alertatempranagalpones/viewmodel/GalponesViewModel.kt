@@ -40,6 +40,58 @@ class GalponesViewModel(application: Application) : AndroidViewModel(application
             _cargando.value = false
         }
     }
+    private val _mensaje = MutableStateFlow<String?>(null)
+    val mensaje: StateFlow<String?> = _mensaje.asStateFlow()
+
+    fun limpiarMensaje() {
+        _mensaje.value = null
+    }
+
+    fun crearGalpon(
+        granja: String,
+        nombre: String,
+        temperatura: Double,
+        humedad: Double,
+        alTerminar: () -> Unit
+    ) {
+        viewModelScope.launch {
+            val nuevo = Galpon(
+                id = 0,
+                granja = granja,
+                nombre = nombre,
+                temperaturaActual = temperatura,
+                humedadActual = humedad,
+                ultimaActualizacion = System.currentTimeMillis()
+            )
+            repository.crearGalpon(nuevo)
+                .onSuccess {
+                    _mensaje.value = "Galpón creado"
+                    alTerminar()
+                }
+                .onFailure { _mensaje.value = "No se pudo crear: revisa la conexión con el servidor" }
+        }
+    }
+
+    fun actualizarGalpon(galpon: Galpon, alTerminar: () -> Unit) {
+        viewModelScope.launch {
+            repository.actualizarGalpon(galpon)
+                .onSuccess {
+                    _mensaje.value = "Galpón actualizado"
+                    alTerminar()
+                }
+                .onFailure { _mensaje.value = "No se pudo actualizar: revisa la conexión con el servidor" }
+        }
+    }
+
+    fun borrarGalpon(id: Long) {
+        viewModelScope.launch {
+            repository.borrarGalpon(id)
+                .onSuccess { _mensaje.value = "Galpón borrado" }
+                .onFailure { _mensaje.value = "No se pudo borrar: revisa la conexión con el servidor" }
+        }
+    }
+
+
 }
 
 

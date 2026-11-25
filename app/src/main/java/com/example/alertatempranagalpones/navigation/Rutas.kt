@@ -7,4 +7,9 @@ object Rutas {
     const val DETALLE_GALPON = "galpon/{galponId}"
 
     fun detalleGalpon(galponId: Long) = "galpon/$galponId"
+
+    const val FORMULARIO_GALPON = "formulario/{galponId}"
+
+    // galponId = 0 significa "galpón nuevo"
+    fun formularioGalpon(galponId: Long = 0L) = "formulario/$galponId"
 }
