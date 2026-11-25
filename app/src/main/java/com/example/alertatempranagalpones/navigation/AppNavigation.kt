@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.example.alertatempranagalpones.ui.screens.DetalleGalponScreen
 import com.example.alertatempranagalpones.ui.screens.ListaGalponesScreen
 import com.example.alertatempranagalpones.ui.screens.LoginScreen
+import com.example.alertatempranagalpones.ui.screens.FormularioGalponScreen
 
 @Composable
 fun AppNavigation() {
@@ -42,6 +43,9 @@ fun AppNavigation() {
             ListaGalponesScreen(
                 onGalponClick = { galponId ->
                     navController.navigate(Rutas.detalleGalpon(galponId))
+                },
+                onNuevoGalpon = {
+                    navController.navigate(Rutas.formularioGalpon())
                 }
             )
         }
@@ -52,6 +56,16 @@ fun AppNavigation() {
         ) { backStackEntry ->
             val galponId = backStackEntry.arguments?.getLong("galponId") ?: 0L
             DetalleGalponScreen(
+                galponId = galponId,
+                onVolver = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Rutas.FORMULARIO_GALPON,
+            arguments = listOf(navArgument("galponId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val galponId = backStackEntry.arguments?.getLong("galponId") ?: 0L
+            FormularioGalponScreen(
                 galponId = galponId,
                 onVolver = { navController.popBackStack() }
             )
