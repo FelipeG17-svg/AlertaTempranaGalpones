@@ -57,7 +57,8 @@ fun AppNavigation() {
             val galponId = backStackEntry.arguments?.getLong("galponId") ?: 0L
             DetalleGalponScreen(
                 galponId = galponId,
-                onVolver = { navController.popBackStack() }
+                onVolver = { navController.popBackStack() },
+                onEditar = { navController.navigate(Rutas.formularioGalpon(galponId)) }
             )
         }
         composable(

@@ -1,5 +1,9 @@
 package com.example.alertatempranagalpones.ui.screens
 
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import com.example.alertatempranagalpones.viewmodel.GalponesViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,13 +75,44 @@ private fun colorDeEstado(estado: EstadoGalpon): Color = when (estado) {
 fun DetalleGalponScreen(
     galponId: Long,
     onVolver: () -> Unit,
-    viewModel: DetalleGalponViewModel = viewModel()
+    onEditar: () -> Unit,
+    viewModel: DetalleGalponViewModel = viewModel(),
+    galponesViewModel: GalponesViewModel = viewModel()
 ) {
     val galpon by viewModel.galpon.collectAsState()
     val mediciones by viewModel.mediciones.collectAsState()
     val alertas by viewModel.alertas.collectAsState()
 
     var alertaEnRegistro by remember { mutableStateOf<Alerta?>(null) }
+
+    val todos by galponesViewModel.galpones.collectAsState()
+    val mensaje by galponesViewModel.mensaje.collectAsState()
+    var confirmarBorrado by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(mensaje) {
+        mensaje?.let {
+            snackbarHostState.showSnackbar(it)
+            galponesViewModel.limpiarMensaje()
+        }
+    }
+
+    if (confirmarBorrado) {
+        AlertDialog(
+            onDismissRequest = { confirmarBorrado = false },
+            title = { Text("Borrar galpón") },
+            text = { Text("¿Seguro que quieres borrar ${galpon?.nombre ?: "este galpón"}? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmarBorrado = false
+                    galponesViewModel.borrarGalpon(galponId, onVolver)
+                }) { Text("Borrar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmarBorrado = false }) { Text("Cancelar") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -90,11 +125,16 @@ fun DetalleGalponScreen(
                             contentDescription = "Volver"
                         )
                     }
+                },
+                actions = {
+                    TextButton(onClick = onEditar) { Text("Editar") }
+                    TextButton(onClick = { confirmarBorrado = true }) { Text("Borrar") }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        val actual = galpon
+        val actual = todos.firstOrNull { it.id == galponId } ?: galpon
         if (actual == null) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
