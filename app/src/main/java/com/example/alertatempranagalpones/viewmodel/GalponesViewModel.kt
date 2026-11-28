@@ -15,11 +15,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class GalponesViewModel(application: Application) : AndroidViewModel(application) {
+class GalponesViewModel(
+    application: Application,
+    private val repository: GalponRepository
+) : AndroidViewModel(application) {
 
-    private val repository = AppDatabase.obtener(application).let { db ->
-        GalponRepository(db.galponDao(), db.medicionDao(), db.alertaDao())
-    }
+    constructor(application: Application) : this(
+        application,
+        AppDatabase.obtener(application).let { db ->
+            GalponRepository(
+                galponDao = db.galponDao(),
+                medicionDao = db.medicionDao(),
+                alertaDao = db.alertaDao()
+            )
+        }
+    )
 
     val galpones: StateFlow<List<Galpon>> = repository.galpones.stateIn(
         scope = viewModelScope,
