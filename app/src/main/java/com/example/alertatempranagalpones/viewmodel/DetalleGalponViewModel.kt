@@ -18,14 +18,24 @@ import kotlinx.coroutines.launch
 
 class DetalleGalponViewModel(
     application: Application,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    private val repository: GalponRepository
 ) : AndroidViewModel(application) {
+
+    constructor(application: Application, savedStateHandle: SavedStateHandle) : this(
+        application,
+        savedStateHandle,
+        AppDatabase.obtener(application).let { db ->
+            GalponRepository(
+                galponDao = db.galponDao(),
+                medicionDao = db.medicionDao(),
+                alertaDao = db.alertaDao()
+            )
+        }
+    )
 
     private val galponId: Long = savedStateHandle.get<Long>("galponId") ?: 0L
 
-    private val repository = AppDatabase.obtener(application).let { db ->
-        GalponRepository(db.galponDao(), db.medicionDao(), db.alertaDao())
-    }
 
     private val _galpon = MutableStateFlow<Galpon?>(null)
     val galpon: StateFlow<Galpon?> = _galpon.asStateFlow()
